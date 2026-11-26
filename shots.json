@@ -1,0 +1,26 @@
+[
+  {
+    "name": "1-takeoff.jpg",
+    "query": "?shot=takeoff",
+    "tick": 405,
+    "description": "Takeoff cover: aircraft departing toward the first beacon."
+  },
+  {
+    "name": "2-coast.jpg",
+    "query": "?shot=coast",
+    "tick": 992,
+    "description": "Coastal low pass: shoreline and next beacon ahead."
+  },
+  {
+    "name": "3-ridge.jpg",
+    "query": "?shot=ridge",
+    "tick": 2357,
+    "description": "Ridge approach: turn toward the Beacon saddle gate."
+  },
+  {
+    "name": "4-landing.jpg",
+    "query": "?shot=landing",
+    "tick": 7183,
+    "description": "Final approach: return aligned with Runway 36."
+  }
+]

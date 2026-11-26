@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Beacon Coast · Coastal Air Rally</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="world" tabindex="0" aria-label="Beacon Coast flight simulator. W and S pitch, A and D bank, Q and E yaw, Shift and Control throttle. Drag to steer. R restarts. P toggles the assisted tour and H shows help."></canvas>
+  <div id="hud">
+    <header class="identity"><span class="mark">✦</span><div>BEACON COAST<small>COASTAL AIR RALLY / SECTOR 07</small></div></header>
+    <section class="telemetry speed"><label>AIRSPEED <span>KT</span></label><strong id="speed">047</strong><div class="ticks">┃ ┃ ┃ ┃ ┃ ┃ ┃ ┃ ┃</div></section>
+    <section class="telemetry heading"><label>MAGNETIC HEADING</label><strong><span id="heading">000</span><em>°</em></strong><div id="compass">W · · · N · · · E</div></section>
+    <section class="telemetry altitude"><label>ALTITUDE <span>FT MSL</span></label><strong id="altitude">022</strong><div class="sub">RAD ALT <b id="clearance">006</b> FT</div></section>
+    <div id="course"><span id="stage">01 / 07 BEACONS</span><h1 id="objective">Departure</h1><p><span id="distance">750</span> M <i>◆</i> <span id="task">FLY THROUGH THE AMBER RING</span></p></div>
+    <div id="pointer" hidden>◀ BEACON</div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="hint">W / S <b>PITCH</b>　A / D <b>BANK</b>　Q / E <b>YAW</b>　SHIFT / CTRL <b>POWER</b>　DRAG <b>STEER</b><small>R RESTART　·　P ASSISTED TOUR　·　H HELP</small></div>
+    <footer>
+      <div class="instrument"><div id="attitude"><div id="horizon"></div><span>─ ◇ ─</span></div><div><label>ATTITUDE</label><b id="pitch">+00°</b></div></div>
+      <div class="power"><label>THROTTLE</label><div class="meter"><i id="power"></i></div><b id="throttle">82%</b></div>
+      <div class="mission"><label id="phase">TAKEOFF</label><div id="progress"></div><small id="timer">00:00.0</small></div>
+      <div class="combo"><label>PRECISION COMBO</label><b id="combo">×1</b></div>
+      <div class="score"><label>RALLY POINTS</label><b id="score">000000</b></div>
+    </footer>
+    <div id="result" hidden><small>BEACON COAST / FLIGHT DEBRIEF</small><h2 id="result-title">Coast complete.</h2><p id="result-copy"></p><button id="restart">FLY AGAIN　↗</button></div>
+    <div id="tour" hidden>ASSISTED TOUR · P TO TAKE CONTROL</div>
+  </div>
+  <script src="three.min.js"></script>
+  <script src="sim.js"></script>
+  <script src="world.js"></script>
+  <script src="flight.js"></script>
+</body>
+</html>

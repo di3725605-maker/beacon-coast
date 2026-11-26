@@ -30,7 +30,7 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
 Without the environment override, output goes to `/output`. The adapter copies `game/` and `screenshots/`, calls the unchanged kit `buildDossier` with the competition caps, and writes `dossier.json`, `action-log.json` and `evidence.json`. The evidence records the seeded input tape hash, replay events, screenshot hashes and final simulation state. No timestamps or random values enter those files. Re-running replaces the generated game and screenshot copies, so use a dedicated output directory.
 
-The kit requires genuine screenshots before it will create a dossier. Capture is coordinated separately: the current source checkout has a screenshot plan, but no captured JPEGs yet. Two local adapter attempts produced identical action logs in under 0.4 seconds each; both correctly failed the empty-screenshot check. Browser rendering and screenshot readability are awaiting coordinator verification. The local runtime tested was Node v24.22.1; Node 22 was not available here.
+The kit requires genuine screenshots before it will create a dossier. Four were captured from the game in headless Chrome at 1280 × 720 (takeoff, coastal low pass, ridge approach, final approach), each a JPEG at or below 262,144 bytes, and each inspected at 640 × 360: the aircraft, the active beacon ring and the HUD (ALT/SPD/HDG) are legible in all four. Two adapter runs with the screenshots in place both exited 0 in under 0.5 seconds and produced byte-identical dossier.json and evidence.json. The local runtime tested was Node v24.22.1; Node 22 was not available here.
 
 ## Screenshot plan
 

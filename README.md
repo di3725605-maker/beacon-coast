@@ -8,6 +8,10 @@ An original coastal air rally: take off from a seaside airfield, thread seven or
 
 Built for [Make the best flight game](https://make.fun/bounty/best-flight-game-20261126-0057). Explore the platform with the [make.fun referral link](https://make.fun/?ref=97tpff5r).
 
+## Round 3 / v2
+
+A closer, lower chase camera makes the cream-and-orange aircraft larger and lifts its full wingspan and tail clear of the lower HUD. Live analog airspeed, altitude and heading instruments accompany the large digital readouts. Cyan-and-white beacons with amber crowns, stronger warm side light, soft shadows and brighter runway approach markings make the coastal course easier to read. The seven-beacon route, scoring, fixed-step replay and four capture ticks are unchanged.
+
 ## Play offline
 
 Open `game/index.html` in a desktop browser with WebGL support. All scripts, terrain and aircraft geometry are local; gameplay needs no installation, build step, account or network connection.
@@ -30,7 +34,9 @@ mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
 Without the environment override, output goes to `/output`. The adapter copies `game/` and `screenshots/`, calls the unchanged kit `buildDossier` with the competition caps, and writes `dossier.json`, `action-log.json` and `evidence.json`. The evidence records the seeded input tape hash, replay events, screenshot hashes and final simulation state. No timestamps or random values enter those files. Re-running replaces the generated game and screenshot copies, so use a dedicated output directory.
 
-The kit requires genuine screenshots before it will create a dossier. Four were captured from the game in headless Chrome at 1280 × 720 (takeoff, coastal low pass, ridge approach, final approach), each a JPEG at or below 262,144 bytes, and each inspected at 640 × 360: the aircraft, the active beacon ring and the HUD (ALT/SPD/HDG) are legible in all four. Two adapter runs with the screenshots in place both exited 0 in under 0.5 seconds and produced byte-identical dossier.json and evidence.json. The local runtime tested was Node v24.22.1; Node 22 was not available here.
+The four existing v1 JPEGs remain in place so the kit can build the dossier. With v2 source and those reference images, two local adapter runs both exited 0 (0.328 s and 0.283 s) and produced byte-identical `dossier.json`, `evidence.json`, `action-log.json` and copied assets. The local runtime tested was Node v24.22.1; Node 22 was not tested here. Fresh v2 screenshots, browser rendering and readability at 640 × 360 await the coordinator; the existing images do not show the v2 changes.
+
+Headless checks execute the real scene geometry and HUD drawing code without a browser: at the four unchanged ticks, the full aircraft spans 27.10–27.12% of the 1280 × 720 frame with its center at 63.37–63.49% height, the horizon sits at 38.93%, and the active beacon spans 17.28–19.32% width. All three analog instruments and digital readings match the replay state. These are projection and drawing-command checks, not visual screenshot approval.
 
 ## Screenshot plan
 

@@ -6,6 +6,68 @@
   let state = S.create(17), tour = query.get('tour') === '1', paused = false, showHelp = false;
   const keys = new Set(), mouse = { active: false, x: 0, y: 0, startX: 0, startY: 0 };
   let accumulator = 0, lastFrame;
+  const dials = Object.fromEntries(['speed', 'altitude', 'heading'].map(name => {
+    const canvas = $(`${name}-dial`);
+    return [name, { canvas, q: canvas.getContext('2d') }];
+  }));
+  function face(q) {
+    q.setTransform(2, 0, 0, 2, 0, 0); q.clearRect(0, 0, 96, 96);
+    q.beginPath(); q.arc(48, 48, 44, 0, Math.PI * 2);
+    q.fillStyle = '#091e29'; q.fill(); q.lineWidth = 2; q.strokeStyle = '#6d999e'; q.stroke();
+    q.textAlign = 'center'; q.textBaseline = 'middle'; q.lineCap = 'round';
+  }
+  function needle(q, angle, length, color, width = 2) {
+    q.save(); q.translate(48, 48); q.rotate(angle);
+    q.beginPath(); q.moveTo(-6, 0); q.lineTo(length, 0);
+    q.lineWidth = width; q.strokeStyle = color; q.stroke(); q.restore();
+  }
+  function hub(q) {
+    q.beginPath(); q.arc(48, 48, 3.2, 0, Math.PI * 2); q.fillStyle = '#ffcf88'; q.fill();
+  }
+  function gauge(name, value, maximum, divisions, unit, circular = false) {
+    const { canvas, q } = dials[name];
+    face(q);
+    const start = circular ? -Math.PI / 2 : Math.PI * .75;
+    const sweep = circular ? Math.PI * 2 : Math.PI * 1.5;
+    for (let i = 0; i <= divisions; i++) {
+      if (circular && i === divisions) continue;
+      const a = start + i / divisions * sweep, major = i % 2 === 0;
+      q.beginPath(); q.moveTo(48 + Math.cos(a) * (major ? 32 : 36), 48 + Math.sin(a) * (major ? 32 : 36));
+      q.lineTo(48 + Math.cos(a) * 39, 48 + Math.sin(a) * 39);
+      q.lineWidth = major ? 1.6 : .8; q.strokeStyle = major ? '#e4f7ec' : '#6d999e'; q.stroke();
+      if (major) {
+        q.font = 'bold 8px Arial'; q.fillStyle = '#e4f7ec';
+        q.fillText(String(circular ? i / 2 : i / divisions * maximum), 48 + Math.cos(a) * 25, 48 + Math.sin(a) * 25);
+      }
+    }
+    if (!circular) {
+      q.beginPath(); q.arc(48, 48, 41, Math.PI * .75 + 85 / maximum * Math.PI * 1.5, Math.PI * .75 + 155 / maximum * Math.PI * 1.5);
+      q.lineWidth = 2; q.strokeStyle = '#73c5a6'; q.stroke();
+    }
+    q.font = 'bold 7px Arial'; q.fillStyle = '#7cb8bf'; q.fillText(unit, 48, circular ? 69 : 67);
+    if (circular) needle(q, start + (value % 10000) / 10000 * sweep, 18, '#ffcf88', 3);
+    needle(q, start + (circular ? value % maximum : S.clamp(value, 0, maximum)) / maximum * sweep, 32, '#d5ffff');
+    hub(q); canvas.dataset.value = String(value); canvas.dataset.unit = name === 'speed' ? 'KT' : 'FT MSL';
+    canvas.setAttribute('aria-label', `${name === 'speed' ? 'Airspeed' : 'Altitude'} ${value} ${canvas.dataset.unit}`);
+  }
+  function compassRose(value) {
+    const { canvas, q } = dials.heading; face(q);
+    q.save(); q.translate(48, 48); q.rotate(-value * Math.PI / 180);
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8 - Math.PI / 2;
+      q.beginPath(); q.moveTo(Math.cos(a) * 32, Math.sin(a) * 32); q.lineTo(Math.cos(a) * 39, Math.sin(a) * 39);
+      q.lineWidth = i % 4 ? 1 : 2; q.strokeStyle = '#83bfc4'; q.stroke();
+      if (i % 4 === 0) {
+        q.save(); q.translate(Math.cos(a) * 24, Math.sin(a) * 24); q.rotate(value * Math.PI / 180);
+        q.font = 'bold 10px Arial'; q.fillStyle = i === 0 ? '#ffcf88' : '#d5ffff'; q.fillText(['N', 'E', 'S', 'W'][i / 4], 0, 0); q.restore();
+      }
+    }
+    q.restore();
+    q.beginPath(); q.moveTo(43, 8); q.lineTo(53, 8); q.lineTo(48, 15); q.closePath(); q.fillStyle = '#ffcf88'; q.fill();
+    q.beginPath(); q.moveTo(48, 34); q.lineTo(48, 60); q.moveTo(35, 47); q.lineTo(61, 47); q.moveTo(42, 57); q.lineTo(54, 57);
+    q.lineWidth = 2; q.strokeStyle = '#d5ffff'; q.stroke();
+    canvas.dataset.value = String(value); canvas.dataset.unit = 'DEG'; canvas.setAttribute('aria-label', `Heading ${String(value).padStart(3, '0')} degrees`);
+  }
   $('progress').innerHTML = S.route.map(() => '<i></i>').join('');
   function restart() { state = S.create(17); tour = false; paused = false; keys.clear(); mouse.active = false; $('result').hidden = true; $('world').focus(); }
   addEventListener('keydown', e => {
@@ -34,17 +96,20 @@
   }
   function hud() {
     const s = state, t = S.target(s), distance = Math.hypot(t.x - s.x, t.y - s.y, t.z - s.z);
-    $('speed').textContent = String(Math.round(s.speed * 1.94384)).padStart(3, '0');
-    $('altitude').textContent = String(Math.round(s.y * 3.28084)).padStart(3, '0');
-    $('heading').textContent = String(Math.round((s.heading * 180 / Math.PI + 360) % 360) % 360).padStart(3, '0');
+    const speed = Math.round(s.speed * 1.94384), altitude = Math.round(s.y * 3.28084);
+    const heading = Math.round((s.heading * 180 / Math.PI + 360) % 360) % 360;
+    $('speed').textContent = String(speed).padStart(3, '0');
+    $('altitude').textContent = String(altitude).padStart(3, '0');
+    $('heading').textContent = String(heading).padStart(3, '0');
+    gauge('speed', speed, 180, 18, 'KT'); gauge('altitude', altitude, 1000, 20, 'FT ×100', true); compassRose(heading);
     $('clearance').textContent = String(Math.round(Math.max(0, s.y - S.ground(s.x, s.z)) * 3.28084)).padStart(3, '0');
     const compass = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-    const ci = Math.round((s.heading / Math.PI * 4 + 8)) % 8;
+    const ci = Math.round(heading / 45) % 8;
     $('compass').textContent = `${compass[(ci + 7) % 8]} · · ▾ ${compass[ci]} ▾ · · ${compass[(ci + 1) % 8]}`;
     $('objective').textContent = t.name;
     $('stage').textContent = s.gate < 7 ? `BEACON ${String(s.gate + 1).padStart(2, '0')} / 07` : 'RETURN / RUNWAY 36';
     $('distance').textContent = String(Math.round(distance));
-    $('task').textContent = s.gate < 7 ? 'AMBER RING' : 'ALIGN · SLOW · DESCEND';
+    $('task').textContent = s.gate < 7 ? 'CYAN BEACON' : 'ALIGN · SLOW · DESCEND';
     $('score').textContent = String(s.score).padStart(6, '0');
     $('combo').textContent = `×${Math.max(1, s.combo)}`;
     $('throttle').textContent = `${Math.round(s.throttle * 100)}%`;
